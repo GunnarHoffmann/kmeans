@@ -1,57 +1,43 @@
-import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
-st.title("k-Means Clustering Demo mit Streamlit")
-
-# Slider für die Anzahl der Datenpunkte
-num_points = st.slider("Anzahl der Datenpunkte", 10, 100, 10)
-
-# Slider für den Seed für die Zufallszahlen
-seed = st.slider("Seed für Zufallszahlen (für Reproduzierbarkeit)", 0, 100, 0)
-np.random.seed(seed)
-
-# Datengenerierung
-data = np.random.randint(0, 100, num_points)
+# 1. Erzeugung von 10 zufälligen Datenpunkten (1-dimensional)
+data = np.random.randint(0, 100, 10)
 data = data.reshape(-1, 1)
 
-# Elbow-Methode
+# 2. Bestimmung der optimalen Anzahl von Clustern (k) mit der Elbow-Methode
 inertia = []
 K = range(1, min(len(data),10))
 
 for k in K:
-    kmeans = KMeans(n_clusters=k, init='k-means++', max_iter=300, n_init=10, random_state=seed)
+    kmeans = KMeans(n_clusters=k, init='k-means++', max_iter=300, n_init=10) # Kein random_state mehr!
     kmeans.fit(data)
     inertia.append(kmeans.inertia_)
 
-# Plot des Elbow-Diagramms in Streamlit
-st.subheader("Elbow-Methode zur Bestimmung von k")
-fig_elbow, ax_elbow = plt.subplots()
-ax_elbow.plot(K, inertia, 'bx-')
-ax_elbow.set_xlabel('Anzahl der Cluster (k)')
-ax_elbow.set_ylabel('Inertia')
-st.pyplot(fig_elbow)
+# Plot des Elbow-Diagramms
+plt.plot(K, inertia, 'bx-')
+plt.xlabel('Anzahl der Cluster (k)')
+plt.ylabel('Inertia')
+plt.title('Elbow-Methode zur Bestimmung von k')
+plt.show()
 
-# Eingabefeld für den optimalen Wert von k
-optimal_k = st.number_input("Optimaler Wert für k (aus dem Elbow-Diagramm auswählen)", min_value=1, max_value=len(data), value=2, step=1)
+# 3. Anwendung von k-Means mit der optimalen Anzahl von Clustern
+optimal_k = 2  # Diesen Wert ggf. aus dem Elbow-Diagramm anpassen
 
-# k-Means-Anwendung
-kmeans = KMeans(n_clusters=optimal_k, init='k-means++', max_iter=300, n_init=10, random_state=seed)
+kmeans = KMeans(n_clusters=optimal_k, init='k-means++', max_iter=300, n_init=10) # Kein random_state mehr!
 kmeans.fit(data)
 labels = kmeans.labels_
 centroids = kmeans.cluster_centers_
 
-# Visualisierung der Ergebnisse in Streamlit
-st.subheader(f"k-Means Clustering mit k={optimal_k}")
-fig_kmeans, ax_kmeans = plt.subplots()
-ax_kmeans.scatter(data, np.zeros_like(data), c=labels, s=100)
-ax_kmeans.scatter(centroids, np.zeros_like(centroids), marker='x', s=200, linewidths=3, color='r')
-ax_kmeans.set_xlabel('Datenwerte')
-st.pyplot(fig_kmeans)
+# 4. Visualisierung der Ergebnisse
+plt.scatter(data, np.zeros_like(data), c=labels, s=100)
+plt.scatter(centroids, np.zeros_like(centroids), marker='x', s=200, linewidths=3, color='r')
+plt.xlabel('Datenwerte')
+plt.title(f'k-Means Clustering mit k={optimal_k}')
+plt.show()
 
-# Ausgabe der Ergebnisse in Streamlit
-st.subheader("Ergebnisse")
-st.write("Datenpunkte:", data.flatten())
-st.write("Clusterzugehörigkeiten:", labels)
-st.write("Zentroiden:", centroids.flatten())
+# Ausgabe der Clusterzugehörigkeiten und Zentroiden
+print("Datenpunkte:", data.flatten())
+print("Clusterzugehörigkeiten:", labels)
+print("Zentroiden:", centroids.flatten())
